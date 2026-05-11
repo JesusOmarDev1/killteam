@@ -1,60 +1,107 @@
 #ifndef STRUCTURES_H
 #define STRUCTURES_H
 
-#define MAX_WEAPONS 6      // Número máximo de armas que un operativo puede equipar
-#define MAX_KEYWORDS 5     // Número máximo de palabras clave que un operativo puede tener
-#define MAX_WEAPON_RULES 3 // Número máximo de reglas especiales que un arma puede tener
-#define MAX_ABILITIES 5    // Número máximo de habilidades especiales que un operativo puede tener
-#define MAX_OPS_FIRETEAM 6 // Número máximo de operativos en un fireteam
+#include <iostream>
+#include <string>
+#include <cstring>
 
-// Estructuras para representar operativos y armas en el juego
+// ===========================
+// LIMITES DEL SISTEMA
+// ===========================
+#define MAX_WEAPONS 6      // Maximo de armas que un operativo puede equipar
+#define MAX_KEYWORDS 5     // Maximo de palabras clave que un operativo puede tener
+#define MAX_WEAPON_RULES 3 // Maximo de reglas especiales que un arma puede tener
+#define MAX_ABILITIES 5    // Maximo de habilidades especiales que un operativo puede tener
+#define MAX_OPS 20         // Maximo de operativos en memoria (nodos en lista)
+
+// ===========================
+// TIPOS DE ARMA
+// ===========================
 typedef enum
 {
-    RANGE,
-    MELEE
+    RANGE, // 0 - Arma de rango
+    MELEE  // 1 - Arma cuerpo a cuerpo
 } WeaponType;
 
+// ===========================
+// ESTRUCTURA ARMA
+// ===========================
 typedef struct
 {
-    char name[50];
-    WeaponType type;                  // Rango o cuerpo a cuerpo
-    int attacks;                      // Número de ataques (A)
-    int hit;                          // Valor necesario para impactar (3 = 3+)
-    int damage;                       // Daño normal (D)
-    int criticalDamage;               // Daño crítico (Dc), 0 si no tiene
-    char rules[MAX_WEAPON_RULES][30]; // Reglas especiales
-    int ruleCount;                    // Número de reglas especiales
+    std::string name;
+    WeaponType type;                     // Rango o cuerpo a cuerpo
+    int attacks;                         // Numero de ataques (A)
+    int hit;                             // Valor para impactar (3 = 3+)
+    int damage;                          // Danio normal (D)
+    int criticalDamage;                  // Danio critico (Dc), 0 si no tiene
+    std::string rules[MAX_WEAPON_RULES]; // Reglas especiales
+    int ruleCount;                       // Cantidad de reglas especiales
+    int threat;                          // Amenaza calculada
+    int range;                           // Solo para armas de rango (0 para melee)
 } Weapon;
 
+// ===========================
+// NODO DE LISTA ENLAZADA
+// ===========================
+typedef struct OperativeNode
+{
+    int id;                               // ID unico del operativo
+    std::string name;                     // Nombre del operativo
+    std::string faction;                  // Faccion del operativo
+    std::string keywords[MAX_KEYWORDS];   // Palabras clave
+    int keywordCount;                     // Cantidad de palabras clave
+    std::string archetype;                // Arquetipo
+    int movement;                         // Movimiento (M)
+    int apl;                              // APL
+    int save;                             // Salvacion (S)
+    int wounds;                           // Heridas (W)
+    Weapon weapons[MAX_WEAPONS];          // Armas del operativo
+    int weaponCount;                      // Cantidad de armas
+    std::string abilities[MAX_ABILITIES]; // Habilidades especiales
+    int abilityCount;                     // Cantidad de habilidades
+    struct OperativeNode *next;           // Puntero al siguiente nodo
+} OperativeNode;
+
+// ===========================
+// LISTA SIMPLEMENTE ENLAZADA
+// ===========================
 typedef struct
 {
-    char name[50];                      // Nombre del operativo
-    char keywords[MAX_KEYWORDS][30];    // Palabras clave (ej. "Infiltration", "Recon", etc.)
-    int keywordCount;                   // Número de palabras clave
-    char archetype[20];                 // Arquetipo (ej. "Assault", "Support", etc.)
-    int movement;                       // Movimiento (M)
-    int apl;                            // Limitación de puntos de acción (APL)
-    int save;                           // Salvación (S) (3 = 3+)
-    int wounds;                         // Heridas (W)
-    Weapon weapons[MAX_WEAPONS];        // Armas del operativo
-    int weaponCount;                    // Número de armas equipadas
-    char abilities[MAX_ABILITIES][100]; // Habilidades especiales del operativo (ej. "Stealth", "Overwatch", etc.)
-    int abilityCount;                   // Número de habilidades especiales
-} Operative;
+    OperativeNode *head; // Primer nodo
+    OperativeNode *tail; // Ultimo nodo
+    int size;            // Cantidad de nodos
+    int nextId;          // Siguiente ID a asignar
+} OperativeList;
 
-typedef struct
-{
-    char teamName[50];                      // Nombre del fireteam
-    char faction[30];                       // Facción a la que pertenece el fireteam (ej. "PanOceania", "Yu Jing", etc.)
-    Operative operatives[MAX_OPS_FIRETEAM]; // Operativos en el fireteam
-    int operativeCount;                     // Número de operativos en el fireteam
-} FireTeam;
+// ===========================
+// DECLARACION DE FUNCIONES
+// ===========================
 
-// Estructura para representar un nodo en una lista enlazada
-typedef struct Node
-{
-    void *data;
-    struct Node *next;
-} Node;
+// Listas Enlazadas
+void initializeList(OperativeList *list);
+bool isEmpty(OperativeList *list);
+int addOperative(OperativeList *list, int position);
+void displayAllOperatives(OperativeList *list);
+void searchOperative(OperativeList *list, std::string name);
+void displayByFaction(OperativeList *list, std::string faction);
+void modifyOperative(OperativeList *list, std::string name);
+void deleteOperative(OperativeList *list, std::string name);
+OperativeNode *getNodeAt(OperativeList *list, int position);
+int countMatches(OperativeList *list, std::string name);
+void displayOperativeCompact(OperativeNode *op);
+
+// Captura de operativo
+void capture_operative_data(OperativeNode *op);
+
+// Visualizacion de salida
+void display_operative(OperativeNode *op);
+void display_weapons(OperativeNode *op);
+
+// Calculos
+int calculate_threat(int attacks, int damage, int criticalDamage);
+
+// Validaciones
+bool validate_total_weapons(OperativeNode *op);
+bool validate_keyword_count(int count);
 
 #endif
