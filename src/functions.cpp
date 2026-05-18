@@ -899,6 +899,11 @@ void mostrarResumenRoster(ListaOperativos *catalogo, ListaEquipamiento *equipos,
     cout << "\n================================" << endl;
     cout << "     RESUMEN DEL ROSTER         " << endl;
     cout << "================================" << endl;
+
+    // Validacion defensiva: si roster es NULL, solo mostrar encabezado
+    if (roster == NULL)
+        return;
+
     cout << "Nombre: " << roster->nombre << endl;
     cout << "Faccion: ";
     mostrarNombreFaccion(roster->faccionId);
